@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+ <html lang="de">
+
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=IE7" />
+
+	<meta charset="utf-8" />
+	<title>rb-scrolly</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<link href="css/styles.css" rel="stylesheet" />
+
+	<script src="js/object-assign.js"></script>
+
+</head>
+<body>
+		<header class="rb-page-header">
+
+
+			<div class="page-header-block is-column-group is-gutter">
+				<div class="is-size-auto is-offset-left">
+					<div class="rb-logo">
+						<h1 class="logo-title">rb_scrolly</h1>
+					</div>
+				</div>
+				<div class="is-size-auto is-offset-right">
+					<form class="rb-libchooser" id="libchooser">
+						<label>
+							<input type="radio" name="domlib"
+							       value="rbdom"
+							       data-url="https://boffinhouse.github.io/rawblock/sources/js/libs/dom.js"
+							       checked />
+							rbdom
+						</label>
+						<label>
+							<input type="radio" name="domlib"
+							       value="jquery"
+							       data-url="http://code.jquery.com/jquery-2.1.4.js" />
+							jquery
+						</label>
+					</form>
+				</div>
+			</div>
+
+		</header>
+		<main class="rb-page-main">
+			{{> body }}
+		</main>
+		<script>
+			(function(){
+				var input;
+				document.querySelector('#libchooser').addEventListener('change', function(){
+					var value = this.querySelector(':checked').value;
+					location.search = '?domlib='+value;
+				});
+
+				if((location.search || '').match(/domlib\=(.+)(&)*/)){
+					input = document.querySelector('#libchooser [value="'+ RegExp.$1 +'"]');
+
+				}
+				if(!input){
+					input = document.querySelector('#libchooser [value="rbdom"]');
+				}
+				input.checked = true;
+				document.write('<script src="' + input.getAttribute('data-url') +'"><\/script>');
+			})();
+		</script>
+
+		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb-utils.js"></script>
+		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb-life.js"></script>
+		<script src="../sources/js/modules/rb_scrolly.js"></script>
+
+		<script>
+			rb.life.init();
+
+			rb.$('.is-js-example').rbWidget('onprogress').add(function(progress){
+				this.element.style.width = ((100 - 5) * (progress) + 5) + '%';
+			});
+		</script>
+	</body>
+</html>

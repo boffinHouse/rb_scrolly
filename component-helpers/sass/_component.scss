@@ -1,0 +1,30 @@
+.rb-page-header {
+	background: #444;
+
+	.page-header-block {
+		align-items: center;
+	}
+}
+
+.rb-page-main {
+	max-width: 1500px;
+	margin: 0 auto;
+	padding: 30px 0;
+}
+
+.rb-logo {
+	.logo-title {
+		color: #ddd;
+	}
+}
+
+.rb-libchooser {
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+
+	label {
+		padding: 20px;
+		color: #ddd;
+	}
+}

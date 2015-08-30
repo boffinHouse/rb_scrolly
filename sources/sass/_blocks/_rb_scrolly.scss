@@ -1,0 +1,80 @@
+/*********************************************************
+
+rb-scrolly
+----------------------------------------------------------
+
+**********************************************************/
+.rb-scrolly {
+
+
+	@if function-exists(rbToJSON) {
+		$scrollyJSCFG: (
+			watchCSS: false,
+			min: '100@0',
+			max: '100%@-100%',
+			disabled: false,
+			once: false,
+			restDisabled: true,
+		);
+
+		//@include exportToJS($scrollyJSCFG);
+	}
+
+	position: relative;
+	background: #999;
+	height: 100px;
+
+	&.is-simple-example {
+		width: 10%;
+		margin: auto;
+		transition: all 600ms;
+
+		&.is-in-scrollrange {
+			width: 80%;
+			transform: rotate(360deg);
+			transition-delay: 500ms;
+		}
+	}
+
+	&.is-in-scrollrange {
+		background: #f00;
+	}
+
+	&.is-complex-scrolly {
+
+		height: 250px;
+		background: #333;
+
+		.scrolly-1 {
+			@if function-exists(rbToJSON) {
+				@include exportToJS((
+					opacity: 1,
+					top: 0,
+				));
+			}
+
+			position: relative;
+			top: 100px;
+			opacity: 0;
+			color: #fff;
+		}
+
+		.scrolly-2 {
+			position: absolute;
+			bottom: 100px;
+			right: 0;
+			width: 100px;
+			height: 100px;
+			background: #f00;
+
+			@if function-exists(rbToJSON) {
+				@include exportToJS((
+					right: 100,
+					bottom: 0,
+				));
+			}
+		}
+	}
+
+}
+
