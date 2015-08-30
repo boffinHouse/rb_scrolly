@@ -6,6 +6,20 @@
 
 	var docElem = document.documentElement;
 
+	var transforms = {
+		rotateX: 1,
+		rotateY: 1,
+		rotateZ: 1,
+		translateX: 1,
+		translateY: 1,
+		translateZ: 1,
+		scaleX: 1,
+		scaleY: 1,
+		scaleZ: 1,
+		skewX: 1,
+		skewY: 1,
+	};
+
 	rb.life.Widget.extend('scrolly', {
 		defaults: {
 			min: '100@0',
@@ -119,14 +133,20 @@
 			var that = this;
 			this.childs = this.$element.find('.scrolly-element').get();
 			this.childAnimations = this.childs.map(function(elem){
-				var prop;
+				var prop, value;
 				var styles = getComputedStyle(elem, null);
+				var elemStyle = elem.style;
 				var options = {
 					start: {},
 					end: Object.assign({}, that.parseCSSOptions(elem), that.parseHTMLOptions(elem))
 				};
+
 				for(prop in options.end){
-					options.start[prop] = $.css(elem, prop, true, styles);
+					if(prop == 'easing'){
+						options.easing = rb.addEasing(options.end[prop]);
+					} else {
+						options.start[prop] = $.css(elem, prop, true, styles);
+					}
 				}
 				return options;
 			});
@@ -138,10 +158,13 @@
 			for(i = 0, len = this.childs.length; i < len; i++){
 				elem = this.childs[i];
 				animOptions = this.childAnimations[i];
-				eased = this.progress;
+				eased = animOptions.easing ?
+					animOptions.easing(this.progress) :
+					this.progress
+				;
 				eStyle = elem.style;
 
-				for(prop in animOptions.end){
+				for(prop in animOptions.start){
 					value = (animOptions.end[prop] - animOptions.start[prop]) * eased + animOptions.start[prop];
 
 					if(prop in eStyle){

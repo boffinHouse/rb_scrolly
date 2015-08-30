@@ -69,8 +69,9 @@ rb-scrolly
 
 			@if function-exists(rbToJSON) {
 				@include exportToJS((
-					right: 100,
+					right: 180,
 					bottom: 0,
+					easing: '(0.175, 0.885, 0.320, 1.275)',
 				));
 			}
 		}
