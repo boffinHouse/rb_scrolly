@@ -5,7 +5,6 @@
 	var $ = rb.$;
 
 	var docElem = document.documentElement;
-
 	var transforms = {
 		rotateX: 1,
 		rotateY: 1,
@@ -20,10 +19,10 @@
 		skewY: 1,
 	};
 
-	rb.life.Widget.extend('scrolly', {
+	var Scrolly = rb.life.Widget.extend('scrolly', {
 		defaults: {
-			min: '100@0',
-			max: '100%@-100%',
+			from: '-100eh',
+			to: '100vh',
 			disabled: false,
 			once: false,
 			restDisabled: true,
@@ -31,9 +30,9 @@
 		init: function(element){
 			this._super(element);
 
-			this.parsePositions();
+			this.parseOffsets();
 			this.entered = false;
-			this.progress = NaN;
+			this.progress = -1;
 
 			this.onprogress = $.Callbacks();
 
@@ -43,57 +42,66 @@
 			this.changeState = rb.rAF(this.changeState, true);
 			this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
 
-			this.setupChilds();
 			this.checkPosition = this.checkPosition.bind(this);
 			this.calculateLayout = this.calculateLayout.bind(this);
 
 			this.calculateLayout();
 		},
-		parsePositions: function(){
-			this.parsedMin = this.parsePosition(this.options.min);
-			this.parsedMax = this.parsePosition(this.options.max);
+		parseOffsets: function(){
+			this.parsedFrom = this.parseOffset(this.options.from);
+			this.parsedTo = this.parseOffset(this.options.to);
 		},
-		parsePosition: function(val){
-			val = val.split('@');
+		parseOffset: function(val){
+			var prop;
+			val = ('' + val).replace(Scrolly.regWhite, '');
+			var match = Scrolly.regCalc.exec(val);
+			var parsedPos = {};
 
-			return {
-				element: {
-					val:  parseFloat(val[0]),
-					unit: (val[0]).indexOf('%') != -1 ? '%' : 'px',
-				},
-				container: {
-					val: parseFloat(val[1] || '0'),
-					unit: (val[1] || '').indexOf('%') != -1 ? '%' : 'px',
-				},
-				extra: parseFloat(val[val.length -1].split('#') || '0')
-			};
-		},
-		calculateOffset: function(element, definition){
-			var offset = definition.val || 0;
-
-			if(offset && definition.unit == '%'){
-				offset = element.clientHeight * (offset / 100);
+			while(match != null){
+				prop = Scrolly.knownUnits[match[3]] ? match[3] : 'px';
+				parsedPos[prop] = parseFloat(match[2]);
+				match = Scrolly.regCalc.exec(val);
 			}
-			return offset;
+
+			return parsedPos;
+		},
+		addOffset: function(offset){
+			var prop, element, dimProp;
+			var value = 0;
+			for(prop in offset){
+				if(prop == 'eh' || prop == 'ev'){
+					element = this.element;
+				} else if(prop == 'vw' || prop == 'vh'){
+					element = docElem;
+				}
+
+				if(element){
+					dimProp = prop.charAt(1) == 'w' ?
+						'clientWidth' :
+						'clientHeight'
+					;
+					value += element[dimProp] / 100 * offset[prop];
+				} else {
+					value += offset[prop];
+				}
+			}
+			return value;
 		},
 		calculateLayout: function(){
 
 			if(this.options.disabled){return;}
 			var box = this.element.getBoundingClientRect();
 
-			this.minScroll = box.top + this.scrollingElement.scrollTop + this.parsedMin.extra;
-			this.maxScroll = this.minScroll + this.parsedMax.extra;
+			this.minScroll = box.top + this.scrollingElement.scrollTop;
+			this.maxScroll = this.minScroll;
 
-			this.maxScroll += this.calculateOffset(this.element, this.parsedMin.element);
-			this.maxScroll += this.calculateOffset(docElem, this.parsedMin.container);
-
-			this.minScroll += this.calculateOffset(this.element, this.parsedMax.element);
-			this.minScroll += this.calculateOffset(docElem, this.parsedMax.container);
+			this.minScroll -= this.addOffset(this.parsedTo);
+			this.maxScroll -= this.addOffset(this.parsedFrom);
 
 			this.checkPosition();
 		},
 		checkPosition: function(){
-			var that;
+			var that, wasProgress;
 			if(this.options.disabled){return;}
 			var progress;
 			var pos = this.scrollingElement.scrollTop;
@@ -101,7 +109,15 @@
 
 			if(shouldEnter || (this.progress !== 0 && this.progress !== 1)){
 				progress = Math.max(Math.min((pos - this.minScroll) / (this.maxScroll - this.minScroll), 1), 0);
+				wasProgress = this.progress;
 				this.progress = progress;
+
+				if(wasProgress == progress || (wasProgress == -1 && !progress)){return;}
+
+				if(!this.childs || !this.childAnimations){
+					this.setupChilds();
+				}
+
 				this.updateChilds();
 				this.onprogress.fireWith(this, [progress]);
 
@@ -129,31 +145,58 @@
 				}
 			}
 		},
+		getCssValue: function(elem, prop, options, styles){
+			var value = {
+				from: 0,
+				to: 1,
+
+			};
+			var endValue = options.end[prop];
+			if(typeof endValue == 'object'){
+
+				Object.assign(value, endValue);
+				options.end[prop] = endValue.value || 0;
+
+				if('start' in endValue){
+					value.value = endValue.start;
+				}
+			}
+
+			value.value = value.value != null ? value.value : $.css(elem, prop, 1, styles);
+
+			if(typeof value.value == 'string' && typeof options.end[prop] == 'string'){
+				value.template = value.value;
+				value.value = (value.value.match(Scrolly.regNumber) || [0]).map(Scrolly.toNumber);
+				options.end[prop] = (options.end[prop].match(Scrolly.regNumber) || [0]).map(Scrolly.toNumber);
+			}
+			return value;
+		},
 		setupChilds: function(){
 			var that = this;
 			this.childs = this.$element.find('.scrolly-element').get();
 			this.childAnimations = this.childs.map(function(elem){
-				var prop, value;
+				var prop;
 				var styles = getComputedStyle(elem, null);
-				var elemStyle = elem.style;
+
 				var options = {
 					start: {},
-					end: Object.assign({}, that.parseCSSOptions(elem), that.parseHTMLOptions(elem))
+					end: Object.assign({}, that.parseCSSOptions(elem), that.parseHTMLOptions(elem)),
+					delays: {}
 				};
 
 				for(prop in options.end){
 					if(prop == 'easing'){
 						options.easing = rb.addEasing(options.end[prop]);
 					} else {
-						options.start[prop] = $.css(elem, prop, true, styles);
+						options.start[prop] = that.getCssValue(elem, prop, options, styles);
 					}
 				}
 				return options;
 			});
+			console.log(this.childAnimations);
 		},
 		updateChilds: function(){
-			var eased, i, len, animOptions, elem, eStyle, prop, value;
-
+			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2;
 
 			for(i = 0, len = this.childs.length; i < len; i++){
 				elem = this.childs[i];
@@ -165,10 +208,20 @@
 				eStyle = elem.style;
 
 				for(prop in animOptions.start){
-					value = (animOptions.end[prop] - animOptions.start[prop]) * eased + animOptions.start[prop];
+					option = animOptions.start[prop];
+					if((isString = option.template)){
+						i2 = 0;
+						value = option.template.replace(Scrolly.regNumber, function(){
+							var value = (animOptions.end[prop][i2] - option.value[i2]) * eased + option.value[i2];
+							i2++;
+							return value;
+						});
+					} else {
+						value = (animOptions.end[prop] - option.value) * eased + option.value;
+					}
 
 					if(prop in eStyle){
-						if(!$.cssNumber[prop]){
+						if(!isString && !$.cssNumber[prop]){
 							value += 'px';
 						}
 						eStyle[prop] = value;
@@ -186,8 +239,8 @@
 			this._super(name, value);
 			if(name == 'disabled' || name == 'restDisabled' && this.options.disabled && this.options.restDisabled){
 				this.changeState(false);
-			} else if(name == 'min' || name == 'max'){
-				this.parsePositions();
+			} else if(name == 'from' || name == 'to'){
+				this.parseOffsets();
 				this.calculateLayout();
 			}
 		},
@@ -200,4 +253,13 @@
 			rb.resize.off(this.calculateLayout);
 		},
 	});
+
+	Scrolly.regWhite = /\s/g;
+	Scrolly.toNumber = function(i){
+		return parseFloat(i) || 0;
+	};
+	Scrolly.regNumber = /(\d+[\.\d]*)/g;
+	Scrolly.regStyleSplit = /\s*;\s*/g;
+	Scrolly.regCalc = /(([+-]*\d+[\.\d]*)(px|vh|eh|vw|ew))/g;
+	Scrolly.knownUnits = {vh: 1, eh: 1, vw: 1, ew: 1};
 })();
