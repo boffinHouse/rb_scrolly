@@ -5,19 +5,6 @@
 	var $ = rb.$;
 
 	var docElem = document.documentElement;
-	var transforms = {
-		rotateX: 1,
-		rotateY: 1,
-		rotateZ: 1,
-		translateX: 1,
-		translateY: 1,
-		translateZ: 1,
-		scaleX: 1,
-		scaleY: 1,
-		scaleZ: 1,
-		skewX: 1,
-		skewY: 1,
-	};
 
 	var Scrolly = rb.life.Widget.extend('scrolly', {
 		defaults: {
@@ -146,11 +133,7 @@
 			}
 		},
 		getCssValue: function(elem, prop, options, styles){
-			var value = {
-				from: 0,
-				to: 1,
-
-			};
+			var value = {};
 			var endValue = options.end[prop];
 			if(typeof endValue == 'object'){
 
@@ -176,34 +159,47 @@
 			this.childs = this.$element.find('.scrolly-element').get();
 			this.childAnimations = this.childs.map(function(elem){
 				var prop;
-				var styles = getComputedStyle(elem, null);
+				var styles = rb.getStyles(elem, null);
 
 				var options = {
 					start: {},
 					end: Object.assign({}, that.parseCSSOptions(elem), that.parseHTMLOptions(elem)),
-					delays: {}
+					from: 0,
+					to: 1,
 				};
 
 				for(prop in options.end){
 					if(prop == 'easing'){
 						options.easing = rb.addEasing(options.end[prop]);
+					} else if(prop == 'from' || prop == 'to'){
+						options[prop] = options.end[prop];
 					} else {
 						options.start[prop] = that.getCssValue(elem, prop, options, styles);
 					}
 				}
 				return options;
 			});
-			console.log(this.childAnimations);
 		},
 		updateChilds: function(){
-			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2;
+			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2, retFn, progress;
 
 			for(i = 0, len = this.childs.length; i < len; i++){
 				elem = this.childs[i];
 				animOptions = this.childAnimations[i];
+				progress = this.progress;
+
+				if(animOptions.from > progress){
+					progress = 0;
+				} else if(animOptions.to < progress){
+					progress = 1;
+				} else if(animOptions.to < 1 || animOptions.from > 0){
+					progress -= animOptions.from;
+					progress *= 1 / (1 - (1 - animOptions.to) - animOptions.from);
+				}
+
 				eased = animOptions.easing ?
-					animOptions.easing(this.progress) :
-					this.progress
+					animOptions.easing(progress) :
+					progress
 				;
 				eStyle = elem.style;
 
@@ -211,11 +207,18 @@
 					option = animOptions.start[prop];
 					if((isString = option.template)){
 						i2 = 0;
-						value = option.template.replace(Scrolly.regNumber, function(){
-							var value = (animOptions.end[prop][i2] - option.value[i2]) * eased + option.value[i2];
-							i2++;
-							return value;
-						});
+						if(!retFn){
+							/*jshint loopfunc: true */
+							retFn = function(){
+								var value = (animOptions.end[prop][i2] - option.value[i2]) * eased + option.value[i2];
+								i2++;
+								if(prop == 'backgroundColor'){
+									value = Math.round(value);
+								}
+								return value;
+							};
+						}
+						value = option.template.replace(Scrolly.regNumber, retFn);
 					} else {
 						value = (animOptions.end[prop] - option.value) * eased + option.value;
 					}
