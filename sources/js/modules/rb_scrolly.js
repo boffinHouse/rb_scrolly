@@ -13,6 +13,7 @@
 			disabled: false,
 			once: false,
 			restDisabled: true,
+			childSel: '.scrolly-element',
 		},
 		init: function(element){
 			this._super(element);
@@ -171,7 +172,7 @@
 		},
 		setupChilds: function(){
 			var that = this;
-			this.childs = this.$element.find('.scrolly-element').get();
+			this.childs = this.$element.find(this.options.childSel).get();
 			this.childAnimations = this.childs.map(function(elem){
 				var prop;
 				var styles = rb.getStyles(elem);
