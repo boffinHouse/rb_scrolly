@@ -17,6 +17,11 @@
 		init: function(element){
 			this._super(element);
 
+			this.minScroll = Number.MAX_VALUE;
+			this.maxScroll = -1;
+
+			this.checkTime = 666 + (666 * Math.random());
+
 			this.parseOffsets();
 			this.entered = false;
 			this.progress = -1;
@@ -79,6 +84,10 @@
 			if(this.options.disabled){return;}
 			var box = this.element.getBoundingClientRect();
 
+			this.lastCheck = Date.now();
+
+			if(!box.top && !box.bottom && !box.right && !box.left){return;}
+
 			this.minScroll = box.top + this.scrollingElement.scrollTop;
 			this.maxScroll = this.minScroll;
 
@@ -88,11 +97,16 @@
 			this.checkPosition();
 		},
 		checkPosition: function(){
-			var that, wasProgress;
+			var that, wasProgress, shouldEnter;
 			if(this.options.disabled){return;}
 			var progress;
 			var pos = this.scrollingElement.scrollTop;
-			var shouldEnter = this.minScroll <= pos && this.maxScroll >= pos;
+
+			if(Date.now() - this.lastCheck > this.checkTime){
+				this.calculateLayout();
+			}
+
+			shouldEnter = this.minScroll <= pos && this.maxScroll >= pos;
 
 			if(shouldEnter || (this.progress !== 0 && this.progress !== 1)){
 				progress = Math.max(Math.min((pos - this.minScroll) / (this.maxScroll - this.minScroll), 1), 0);
@@ -159,7 +173,7 @@
 			this.childs = this.$element.find('.scrolly-element').get();
 			this.childAnimations = this.childs.map(function(elem){
 				var prop;
-				var styles = rb.getStyles(elem, null);
+				var styles = rb.getStyles(elem);
 
 				var options = {
 					start: {},
@@ -250,10 +264,13 @@
 		attached: function(){
 			window.addEventListener('scroll', this.checkPosition);
 			rb.resize.on(this.calculateLayout);
+			clearInterval(this.layoutInterval);
+			this.layoutInterval = setInterval(this.calculateLayout, Math.round(9999 + (999 * Math.random())));
 		},
 		detached: function(){
 			window.removeEventListener('scroll', this.checkPosition);
 			rb.resize.off(this.calculateLayout);
+			clearInterval(this.layoutInterval);
 		},
 	});
 
