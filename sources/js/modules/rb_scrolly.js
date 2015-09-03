@@ -103,7 +103,8 @@
 			var pos = this.scrollingElement.scrollTop;
 
 			if(Date.now() - this.lastCheck > this.checkTime){
-				this.calculateLayout();
+				this.lastCheck = Date.now();
+				setTimeout(this.calculateLayout, 99 * Math.random());
 			}
 
 			shouldEnter = this.minScroll <= pos && this.maxScroll >= pos;
