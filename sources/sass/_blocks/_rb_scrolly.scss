@@ -6,19 +6,19 @@ rb-scrolly
 **********************************************************/
 $scrollyJSCFG: (
 	watchCSS: false,
+	switchedOff: false,
 	from: '-100eh',
 	to: '100vh',
-	disabled: false,
 	once: false,
-	restDisabled: true,
+	restSwitchedOff: true,
+	childSel: '.scrolly-element',
+	childStyle: '',
 );
 
 .rb-scrolly {
 
 
-	@if function-exists(rbToJSON) {
-		//@include exportToJS($scrollyJSCFG);
-	}
+	//@include exportToJS($scrollyJSCFG);
 
 	position: relative;
 	background: #999;
@@ -85,4 +85,3 @@ $scrollyJSCFG: (
 	}
 
 }
-

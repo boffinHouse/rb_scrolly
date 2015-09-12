@@ -8,12 +8,13 @@
 
 	var Scrolly = rb.life.Widget.extend('scrolly', {
 		defaults: {
+			switchedOff: false,
 			from: '-100eh',
 			to: '100vh',
-			disabled: false,
 			once: false,
-			restDisabled: true,
+			restSwitchedOff: true,
 			childSel: '.scrolly-element',
+			childStyle: '', // if this option changes all childs are reset and recalculated
 		},
 		init: function(element){
 			this._super(element);
@@ -23,7 +24,7 @@
 
 			this.checkTime = 666 + (666 * Math.random());
 
-			this.parseOffsets();
+
 			this.entered = false;
 			this.progress = -1;
 
@@ -38,6 +39,7 @@
 			this.checkPosition = this.checkPosition.bind(this);
 			this.calculateLayout = this.calculateLayout.bind(this);
 
+			this.parseOffsets();
 			this.calculateLayout();
 		},
 		parseOffsets: function(){
@@ -82,7 +84,7 @@
 		},
 		calculateLayout: function(){
 
-			if(this.options.disabled){return;}
+			if(this.options.switchedOff){return;}
 			var box = this.element.getBoundingClientRect();
 
 			this.lastCheck = Date.now();
@@ -99,7 +101,7 @@
 		},
 		checkPosition: function(){
 			var that, wasProgress, shouldEnter;
-			if(this.options.disabled){return;}
+			if(this.options.switchedOff){return;}
 			var progress;
 			var pos = this.scrollingElement.scrollTop;
 
@@ -116,10 +118,6 @@
 				this.progress = progress;
 
 				if(wasProgress == progress || (wasProgress == -1 && !progress)){return;}
-
-				if(!this.childs || !this.childAnimations){
-					this.setupChilds();
-				}
 
 				this.updateChilds();
 				this.onprogress.fireWith(this, [progress]);
@@ -141,7 +139,7 @@
 			if(this.entered != shouldEnter){
 				this.entered = shouldEnter;
 				this.element.classList[shouldEnter ? 'add' : 'remove']('is-in-scrollrange');
-				this.$element.trigger('scrollquerychange');
+				this.$element.trigger('scrollychange');
 
 				if(this.options.once == 'entered'){
 					this.destroy();
@@ -196,70 +194,93 @@
 				return options;
 			});
 		},
-		updateChilds: function(){
+		updateChilds: function(empty){
 			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2, retFn, progress;
+			empty = empty === true;
+
+			if(!this.childs || !this.childAnimations){
+				if(empty){
+					return;
+				}
+				this.setupChilds();
+			}
 
 			for(i = 0, len = this.childs.length; i < len; i++){
 				elem = this.childs[i];
 				animOptions = this.childAnimations[i];
 				progress = this.progress;
-
-				if(animOptions.from > progress){
-					progress = 0;
-				} else if(animOptions.to < progress){
-					progress = 1;
-				} else if(animOptions.to < 1 || animOptions.from > 0){
-					progress -= animOptions.from;
-					progress *= 1 / (1 - (1 - animOptions.to) - animOptions.from);
-				}
-
-				eased = animOptions.easing ?
-					animOptions.easing(progress) :
-					progress
-				;
 				eStyle = elem.style;
+
+				if(!empty){
+					if(animOptions.from > progress){
+						progress = 0;
+					} else if(animOptions.to < progress){
+						progress = 1;
+					} else if(animOptions.to < 1 || animOptions.from > 0){
+						progress -= animOptions.from;
+						progress *= 1 / (1 - (1 - animOptions.to) - animOptions.from);
+					}
+
+					eased = animOptions.easing ?
+						animOptions.easing(progress) :
+						progress
+					;
+				}
 
 				for(prop in animOptions.start){
 					option = animOptions.start[prop];
-					if((isString = option.template)){
-						i2 = 0;
-						if(!retFn){
-							/*jshint loopfunc: true */
-							retFn = function(){
-								var value = (animOptions.end[prop][i2] - option.value[i2]) * eased + option.value[i2];
-								i2++;
-								if(prop == 'backgroundColor'){
-									value = Math.round(value);
-								}
-								return value;
-							};
+					value = option.value;
+
+					if(!empty){
+						if((isString = option.template)){
+							i2 = 0;
+							if(!retFn){
+								/*jshint loopfunc: true */
+								retFn = function(){
+									var value = (animOptions.end[prop][i2] - option.value[i2]) * eased + option.value[i2];
+									i2++;
+									if(prop == 'backgroundColor'){
+										value = Math.round(value);
+									}
+									return value;
+								};
+							}
+							value = option.template.replace(Scrolly.regNumber, retFn);
+						} else {
+							value = (animOptions.end[prop] - option.value) * eased + option.value;
 						}
-						value = option.template.replace(Scrolly.regNumber, retFn);
-					} else {
-						value = (animOptions.end[prop] - option.value) * eased + option.value;
 					}
 
 					if(prop in eStyle){
 						if(!isString && !$.cssNumber[prop]){
 							value += 'px';
 						}
-						eStyle[prop] = value;
+						eStyle[prop] = empty ? '' : value;
 					} else {
 						elem[prop] = value;
 					}
 				}
 			}
-
+			if(empty){
+				this.childs = null;
+				this.childAnimations = null;
+			}
 		},
 		onceAttached: function(){
 
 		},
 		setOption: function(name, value){
 			this._super(name, value);
-			if(name == 'disabled' || name == 'restDisabled' && this.options.disabled && this.options.restDisabled){
+			if(name == 'switchedOff' || name == 'restSwitchedOff' && this.options.switchedOff && this.options.restSwitchedOff){
 				this.changeState(false);
-			} else if(name == 'from' || name == 'to'){
+				this.updateChilds(true);
+				this.progress = -1;
+			} else if(name == 'from' || name == 'to' || (name == 'switchedOff' && !value)){
 				this.parseOffsets();
+				this.calculateLayout();
+			} else if(name == 'childStyle'){
+				this.updateChilds._rbUnrafedFn(true);
+				this.progress = -1;
 				this.calculateLayout();
 			}
 		},
