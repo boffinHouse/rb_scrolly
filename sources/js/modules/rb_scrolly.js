@@ -42,6 +42,21 @@
 			this.parseOffsets();
 			this.calculateLayout();
 		},
+		setOption: function(name, value){
+			this._super(name, value);
+			if(name == 'switchedOff' || name == 'restSwitchedOff' && this.options.switchedOff && this.options.restSwitchedOff){
+				this.changeState(false);
+				this.updateChilds(true);
+				this.progress = -1;
+			} else if(name == 'from' || name == 'to' || (name == 'switchedOff' && !value)){
+				this.parseOffsets();
+				this.calculateLayout();
+			} else if(name == 'childStyle'){
+				this.updateChilds._rbUnrafedFn(true);
+				this.progress = -1;
+				this.calculateLayout();
+			}
+		},
 		parseOffsets: function(){
 			this.parsedFrom = this.parseOffset(this.options.from);
 			this.parsedTo = this.parseOffset(this.options.to);
@@ -268,21 +283,6 @@
 		},
 		onceAttached: function(){
 
-		},
-		setOption: function(name, value){
-			this._super(name, value);
-			if(name == 'switchedOff' || name == 'restSwitchedOff' && this.options.switchedOff && this.options.restSwitchedOff){
-				this.changeState(false);
-				this.updateChilds(true);
-				this.progress = -1;
-			} else if(name == 'from' || name == 'to' || (name == 'switchedOff' && !value)){
-				this.parseOffsets();
-				this.calculateLayout();
-			} else if(name == 'childStyle'){
-				this.updateChilds._rbUnrafedFn(true);
-				this.progress = -1;
-				this.calculateLayout();
-			}
 		},
 		attached: function(){
 			window.addEventListener('scroll', this.checkPosition);
