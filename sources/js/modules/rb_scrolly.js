@@ -5,7 +5,7 @@
 	var $ = rb.$;
 
 	var docElem = document.documentElement;
-	var pseudoExpando = rb.Symbol();
+	var pseudoExpando = rb.Symbol('_rbPseudoExpando');
 
 	var Scrolly = rb.life.Widget.extend('scrolly', {
 		defaults: {
@@ -196,6 +196,7 @@
 					from: 0,
 					to: 1,
 				};
+
 				elem[pseudoExpando] = rb.getStyles(elem, '::after').content;
 
 				for(prop in options.end){
@@ -212,7 +213,8 @@
 		},
 		checkChildReflow: function(){
 			var ret = false;
-			if(this.options.watchCSS && this.childs && this.childs.length){
+
+			if(this.options.watchCSS && this.childs && this.childs.length && !this.options.switchedOff){
 				this.childs.forEach(function(elem){
 					if(!ret && elem[pseudoExpando] != rb.getStyles(elem, '::after').content){
 						ret = true;
@@ -224,6 +226,8 @@
 				this.updateChilds._rbUnrafedFn(true);
 				this.progress = -1;
 			}
+
+			return ret;
 		},
 		updateChilds: function(empty){
 			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2, retFn, progress;
