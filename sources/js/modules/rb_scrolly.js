@@ -154,7 +154,7 @@
 			if(this.entered != shouldEnter){
 				this.entered = shouldEnter;
 				this.element.classList[shouldEnter ? 'add' : 'remove']('is-in-scrollrange');
-				this.$element.trigger('scrollychange');
+				this._trigger();
 
 				if(this.options.once == 'entered'){
 					this.destroy();
