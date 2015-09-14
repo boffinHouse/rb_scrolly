@@ -5,6 +5,7 @@
 	var $ = rb.$;
 
 	var docElem = document.documentElement;
+	var pseudoExpando = rb.Symbol();
 
 	var Scrolly = rb.life.Widget.extend('scrolly', {
 		defaults: {
@@ -14,7 +15,6 @@
 			once: false,
 			restSwitchedOff: true,
 			childSel: '.scrolly-element',
-			childStyle: '', // if this option changes all childs are reset and recalculated
 		},
 		init: function(element){
 			this._super(element);
@@ -38,6 +38,10 @@
 
 			this.checkPosition = this.checkPosition.bind(this);
 			this.calculateLayout = this.calculateLayout.bind(this);
+			this.reflow = rb.throttle(function(){
+				this.checkChildReflow();
+				this.calculateLayout();
+			}, {that: this});
 
 			this.parseOffsets();
 			this.calculateLayout();
@@ -50,10 +54,6 @@
 				this.progress = -1;
 			} else if(name == 'from' || name == 'to' || (name == 'switchedOff' && !value)){
 				this.parseOffsets();
-				this.calculateLayout();
-			} else if(name == 'childStyle'){
-				this.updateChilds._rbUnrafedFn(true);
-				this.progress = -1;
 				this.calculateLayout();
 			}
 		},
@@ -196,6 +196,7 @@
 					from: 0,
 					to: 1,
 				};
+				elem[pseudoExpando] = rb.getStyles(elem, '::after').content;
 
 				for(prop in options.end){
 					if(prop == 'easing'){
@@ -208,6 +209,21 @@
 				}
 				return options;
 			});
+		},
+		checkChildReflow: function(){
+			var ret = false;
+			if(this.options.watchCSS && this.childs && this.childs.length){
+				this.childs.forEach(function(elem){
+					if(!ret && elem[pseudoExpando] != rb.getStyles(elem, '::after').content){
+						ret = true;
+					}
+				});
+			}
+
+			if(ret){
+				this.updateChilds._rbUnrafedFn(true);
+				this.progress = -1;
+			}
 		},
 		updateChilds: function(empty){
 			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2, retFn, progress;
@@ -286,13 +302,13 @@
 		},
 		attached: function(){
 			window.addEventListener('scroll', this.checkPosition);
-			rb.resize.on(this.calculateLayout);
+			rb.resize.on(this.reflow);
 			clearInterval(this.layoutInterval);
-			this.layoutInterval = setInterval(this.calculateLayout, Math.round(9999 + (999 * Math.random())));
+			this.layoutInterval = setInterval(this.reflow, Math.round(9999 + (999 * Math.random())));
 		},
 		detached: function(){
 			window.removeEventListener('scroll', this.checkPosition);
-			rb.resize.off(this.calculateLayout);
+			rb.resize.off(this.reflow);
 			clearInterval(this.layoutInterval);
 		},
 	});
