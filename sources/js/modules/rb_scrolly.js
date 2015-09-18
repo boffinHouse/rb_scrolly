@@ -16,14 +16,22 @@
 			restSwitchedOff: true,
 			childSel: '.scrolly-element',
 		},
+		statics: {
+			toNumber: function(i){
+				return parseFloat(i) || 0;
+			},
+			regNumber: /(\d+[\.\d]*)/g,
+			regWhite: /\s/g,
+			regCalc: /(([+-]*\d+[\.\d]*)(px|vh|eh|vw|ew))/g,
+			knownUnits: {vh: 1, eh: 1, vw: 1, ew: 1},
+		},
 		init: function(element){
 			this._super(element);
 
 			this.minScroll = Number.MAX_VALUE;
 			this.maxScroll = -1;
 
-			this.checkTime = 666 + (666 * Math.random());
-
+			this.checkTime = 999 + (999 * Math.random());
 
 			this.entered = false;
 			this.progress = -1;
@@ -316,13 +324,4 @@
 			clearInterval(this.layoutInterval);
 		},
 	});
-
-	Scrolly.regWhite = /\s/g;
-	Scrolly.toNumber = function(i){
-		return parseFloat(i) || 0;
-	};
-	Scrolly.regNumber = /(\d+[\.\d]*)/g;
-	Scrolly.regStyleSplit = /\s*;\s*/g;
-	Scrolly.regCalc = /(([+-]*\d+[\.\d]*)(px|vh|eh|vw|ew))/g;
-	Scrolly.knownUnits = {vh: 1, eh: 1, vw: 1, ew: 1};
 })();
