@@ -193,7 +193,7 @@
 		},
 		setupChilds: function(){
 			var that = this;
-			this.childs = this.$element.find(this.options.childSel).get();
+			this.childs = rb.elementFromStr(this.options.childSel, this.element);
 			this.childAnimations = this.childs.map(function(elem){
 				var prop;
 				var styles = rb.getStyles(elem);
