@@ -14,7 +14,7 @@
 			to: '100vh',
 			once: false,
 			restSwitchedOff: true,
-			childSel: '.scrolly-element',
+			childSel: 'find(.scrolly-element)',
 		},
 		statics: {
 			toNumber: function(i){
