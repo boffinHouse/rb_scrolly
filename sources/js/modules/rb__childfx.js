@@ -1,0 +1,166 @@
+(function() {
+	'use strict';
+
+	var rb = window.rb;
+	var $ = rb.$;
+
+	var pseudoExpando = rb.Symbol('_rbPseudoExpando');
+
+	var _ChildFX = rb.Widget.extend('_childfx', {
+		defaults: {
+			switchedOff: false,
+			from: '-100eh',
+			to: '100vh',
+			once: false,
+			restSwitchedOff: true,
+			childSel: 'find(.child-fx)',
+		},
+		statics: {
+			toNumber: function (i) {
+				return parseFloat(i) || 0;
+			},
+			regNumber: /(\d+[\.\d]*)/g,
+			regWhite: /\s/g,
+		},
+		getCssValue: function(elem, prop, options, styles){
+			var value = {};
+			var endValue = options.end[prop];
+			if(typeof endValue == 'object'){
+
+				Object.assign(value, endValue);
+				options.end[prop] = endValue.value || 0;
+
+				if('start' in endValue){
+					value.value = endValue.start;
+				}
+			}
+
+			value.value = value.value != null ? value.value : $.css(elem, prop, 1, styles);
+
+			if(typeof value.value == 'string' && typeof options.end[prop] == 'string'){
+				value.template = value.value;
+				value.value = (value.value.match(_ChildFX.regNumber) || [0]).map(_ChildFX.toNumber);
+				options.end[prop] = (options.end[prop].match(_ChildFX.regNumber) || [0]).map(_ChildFX.toNumber);
+			}
+			return value;
+		},
+		setupChilds: function(){
+			var that = this;
+			this.childs = rb.elementFromStr(this.options.childSel, this.element);
+			this.childAnimations = this.childs.map(function(elem){
+				var prop;
+				var styles = rb.getStyles(elem);
+
+				var options = {
+					start: {},
+					end: Object.assign({}, that.parseCSSOptions(elem), that.parseHTMLOptions(elem)),
+					from: 0,
+					to: 1,
+				};
+
+				elem[pseudoExpando] = rb.getStyles(elem, '::after').content;
+
+				for(prop in options.end){
+					if(prop == 'easing'){
+						options.easing = rb.addEasing(options.end[prop]);
+					} else if(prop == 'from' || prop == 'to'){
+						options[prop] = options.end[prop];
+					} else {
+						options.start[prop] = that.getCssValue(elem, prop, options, styles);
+					}
+				}
+				return options;
+			});
+		},
+		checkChildReflow: function(){
+			var ret = false;
+
+			if(this.options.watchCSS && this.childs && this.childs.length && !this.options.switchedOff){
+				this.childs.forEach(function(elem){
+					if(!ret && elem[pseudoExpando] != rb.getStyles(elem, '::after').content){
+						ret = true;
+					}
+				});
+			}
+
+			if(ret){
+				this.updateChilds._rbUnrafedFn(true);
+				this.progress = -1;
+			}
+
+			return ret;
+		},
+		updateChilds: function(empty){
+			var eased, i, len, animOptions, elem, eStyle, prop, value, option, isString, i2, retFn, progress;
+			empty = empty === true;
+
+			if(!this.childs || !this.childAnimations){
+				if(empty){
+					return;
+				}
+				this.setupChilds();
+			}
+
+			for(i = 0, len = this.childs.length; i < len; i++){
+				elem = this.childs[i];
+				animOptions = this.childAnimations[i];
+				progress = this.progress;
+				eStyle = elem.style;
+
+				if(!empty){
+					if(animOptions.from > progress){
+						progress = 0;
+					} else if(animOptions.to < progress){
+						progress = 1;
+					} else if(animOptions.to < 1 || animOptions.from > 0){
+						progress -= animOptions.from;
+						progress *= 1 / (1 - (1 - animOptions.to) - animOptions.from);
+					}
+
+					eased = animOptions.easing ?
+						animOptions.easing(progress) :
+						progress
+					;
+				}
+
+				for(prop in animOptions.start){
+					option = animOptions.start[prop];
+					value = option.value;
+
+					if(!empty){
+						if((isString = option.template)){
+							i2 = 0;
+							if(!retFn){
+								/*jshint loopfunc: true */
+								retFn = function(){
+									var value = (animOptions.end[prop][i2] - option.value[i2]) * eased + option.value[i2];
+									i2++;
+									if(prop == 'backgroundColor'){
+										value = Math.round(value);
+									}
+									return value;
+								};
+							}
+							value = option.template.replace(_ChildFX.regNumber, retFn);
+						} else {
+							value = (animOptions.end[prop] - option.value) * eased + option.value;
+						}
+					}
+
+					if(prop in eStyle){
+						if(!isString && !$.cssNumber[prop]){
+							value += 'px';
+						}
+						eStyle[prop] = empty ? '' : value;
+					} else {
+						elem[prop] = value;
+					}
+				}
+			}
+			if(empty){
+				this.childs = null;
+				this.childAnimations = null;
+			}
+		},
+	});
+})();
