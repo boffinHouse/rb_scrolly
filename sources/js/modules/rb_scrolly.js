@@ -21,7 +21,6 @@
 			knownUnits: {vh: 1, eh: 1, vw: 1, ew: 1},
 		},
 		init: function(element){
-			debugger;
 			this._super(element);
 
 			this.minScroll = Number.MAX_VALUE;

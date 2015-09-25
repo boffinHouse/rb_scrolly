@@ -11,17 +11,25 @@ $scrollyJSCFG: (
 	to: '100vh',
 	once: false,
 	restSwitchedOff: true,
-	childSel: '.scrolly-element',
+	childSel: 'find(.scrolly-element)',
 );
 
 .rb-scrolly {
-
-
 	//@include exportToJS($scrollyJSCFG);
 
 	position: relative;
 	background: #999;
 	height: 100px;
+
+	/* performance: try this or the following */
+	backface-visibility: hidden;
+
+	//&.is-in-scrollrange {
+	//	&,
+	//	.scrolly-element {
+	//		backface-visibility: hidden;
+	//	}
+	//}
 
 	&.is-simple-example {
 		width: 10%;
@@ -43,14 +51,13 @@ $scrollyJSCFG: (
 
 		height: 250px;
 		background: #333;
+		transition: 99ms opacity, 99ms top;
 
 		.scrolly-1 {
-			@if function-exists(rbToJSON) {
-				@include exportToJS((
-					opacity: 1,
-					top: 0,
-				));
-			}
+			@include exportToJS((
+				opacity: 1,
+				top: 0,
+			));
 
 			position: relative;
 			top: 100px;
@@ -59,27 +66,26 @@ $scrollyJSCFG: (
 		}
 
 		.scrolly-2 {
+			@include exportToJS((
+				right: 180,
+				bottom: 0,
+				backgroundColor: 'rgba(200, 230, 0, 0.4)',
+				transform: (
+					value: 'rotate(30deg)',
+					start: 'rotate(0deg)',
+				),
+				from: 0.6,
+				to: 0.9,
+				easing: '(0.175, 0.885, 0.320, 1.275)',
+			));
+
 			position: absolute;
 			bottom: 100px;
 			right: 0;
 			width: 100px;
 			height: 100px;
 			background: #f00;
-
-			@if function-exists(rbToJSON) {
-				@include exportToJS((
-					right: 180,
-					bottom: 0,
-					backgroundColor: 'rgba(200, 230, 0, 0.4)',
-					transform: (
-						value: 'rotate(30deg)',
-						start: 'rotate(0deg)',
-					),
-					from: 0.6,
-					to: 0.9,
-					easing: '(0.175, 0.885, 0.320, 1.275)',
-				));
-			}
+			transition: 99ms background-color, 99ms transform, 99ms right, 99ms bottom;
 		}
 	}
 

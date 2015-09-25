@@ -10,7 +10,6 @@
 
 	<link href="css/styles.css" rel="stylesheet" />
 
-	<script src="js/object-assign.js"></script>
 
 </head>
 <body>
@@ -68,6 +67,12 @@
 		</script>
 
 		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rawblock.js"></script>
+		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb_packageloader.js"></script>
+		<script>
+			window.ASSETBASEPATH = '../sources/';
+			rb.loadPackage.basePath = window.ASSETBASEPATH + 'js/';
+			rb.loadPackage.modulePath = window.ASSETBASEPATH + 'js/modules/';
+		</script>
 		<script src="../sources/js/modules/rb__childfx.js"></script>
 		<script src="../sources/js/modules/rb_scrolly.js"></script>
 
