@@ -9,10 +9,6 @@
 	var _ChildFX = rb.Widget.extend('_childfx', {
 		defaults: {
 			switchedOff: false,
-			from: '-100eh',
-			to: '100vh',
-			once: false,
-			restSwitchedOff: true,
 			childSel: 'find(.child-fx)',
 		},
 		statics: {

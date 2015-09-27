@@ -79,8 +79,10 @@
 		<script>
 			rb.life.init();
 
-			rb.$('.is-js-example').rbWidget('onprogress').add(function(progress){
-				this.element.style.width = ((100 - 5) * (progress) + 5) + '%';
+			rb.$('.is-js-example').each(function(){
+				rb.$(this).rbWidget('onprogress').add(function(progress){
+					this.element.style.width = ((100 - 5) * (progress) + 5) + '%';
+				});
 			});
 		</script>
 	</body>
