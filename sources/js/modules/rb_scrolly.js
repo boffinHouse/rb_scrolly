@@ -35,8 +35,8 @@
 
 			this.scrollingElement = rb.getScrollingElement();
 
-			this.updateChilds = rb.rAF(this.updateChilds || $.noop, {inProgress: true});
-			this.changeState = rb.rAF(this.changeState, {inProgress: true});
+			this.updateChilds = rb.rAF(this.updateChilds || $.noop);
+			this.changeState = rb.rAF(this.changeState);
 
 			this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
 
