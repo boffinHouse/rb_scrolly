@@ -6,7 +6,7 @@
 
 	var docElem = document.documentElement;
 
-	var Scrolly = (rb.widgets._childfx || rb.Widget).extend('scrolly', {
+	var Scrolly = (rb.components._childfx || rb.Component).extend('scrolly', {
 		defaults: {
 			switchedOff: false,
 			from: '-100eh',

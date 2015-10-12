@@ -80,7 +80,7 @@
 			rb.life.init();
 
 			rb.$('.is-js-example').each(function(){
-				rb.$(this).rbWidget().onprogress.add(function(progress){
+				rb.$(this).rbComponent().onprogress.add(function(progress){
 					this.element.style.width = ((100 - 5) * (progress) + 5) + '%';
 				});
 			});

@@ -6,7 +6,7 @@
 
 	var pseudoExpando = rb.Symbol('_rbPseudoExpando');
 
-	var _ChildFX = rb.Widget.extend('_childfx', {
+	var _ChildFX = rb.Component.extend('_childfx', {
 		defaults: {
 			switchedOff: false,
 			childSel: 'find(.child-fx)',
