@@ -5,13 +5,13 @@ rb-scrolly
 
 **********************************************************/
 $scrollyJSCFG: (
-	watchCss: false,
 	switchedOff: false,
-	from: '-100eh',
-	to: '100vh',
+	from: '-90eh',
+	to: '100vh-10eh',
 	once: false,
 	restSwitchedOff: true,
 	childSel: 'find(.scrolly-element)',
+	throttleDelay: 0,
 );
 
 .rb-scrolly {
@@ -39,7 +39,7 @@ $scrollyJSCFG: (
 		&.is-in-scrollrange {
 			width: 80%;
 			transform: rotate(360deg);
-			transition-delay: 500ms;
+			transition-delay: 100ms;
 		}
 	}
 
@@ -74,7 +74,7 @@ $scrollyJSCFG: (
 					value: 'rotate(30deg)',
 					start: 'rotate(0deg)',
 				),
-				from: 0.6,
+				from: 0.3,
 				to: 0.9,
 				easing: '(0.175, 0.885, 0.320, 1.275)',
 			));
@@ -85,7 +85,7 @@ $scrollyJSCFG: (
 			width: 100px;
 			height: 100px;
 			background: #f00;
-			transition: 150ms background-color, 150ms transform, 150ms right, 150ms bottom;
+			transition: 50ms background-color, 50ms transform, 50ms right, 50ms bottom;
 		}
 	}
 
