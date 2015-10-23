@@ -29,6 +29,7 @@
 			 * @constructs
 			 *
 			 * @classdesc Abstract class that can be extended to animate child elements according to a progress property.
+			 * @extends rb.Component
 			 *
 			 * @param element
 			 *
