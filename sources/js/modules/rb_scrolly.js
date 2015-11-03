@@ -135,13 +135,7 @@
 				this.calculateLayout();
 			},
 			_setupThrottleDelay: function(delay){
-				var delayPart;
 				if(delay && delay > 0){
-					delayPart = delay / 3;
-
-					if(delayPart > 15 && delayPart < 99){
-						delay = (delayPart * 2) + (delayPart * (Math.random() + 0.4));
-					}
 					this.throtteldCheckPosition = rb.throttle(this.checkPosition, {delay: delay});
 				} else {
 					this.throtteldCheckPosition = this.checkPosition;
