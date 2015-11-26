@@ -1,8 +1,0 @@
-@import "sass/**/*.scss";
-@import "../component-helpers/sass/component.scss";
-
-@include rb_generate_layout_styles($breakpointConfigs);
-
-@import '../sources/sass/_blocks/rb_scrolly';
-
-

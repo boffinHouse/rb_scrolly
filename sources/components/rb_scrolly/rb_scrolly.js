@@ -135,7 +135,7 @@
 				this.calculateLayout();
 			},
 			_setupThrottleDelay: function(delay){
-				if(delay && delay > 0){
+				if(delay && delay > 30){
 					this.throtteldCheckPosition = rb.throttle(this.checkPosition, {delay: delay});
 				} else {
 					this.throtteldCheckPosition = this.checkPosition;

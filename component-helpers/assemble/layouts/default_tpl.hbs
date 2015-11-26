@@ -27,7 +27,7 @@
 						<label>
 							<input type="radio" name="domlib"
 							       value="rbdom"
-							       data-url="https://boffinhouse.github.io/rawblock/sources/js/libs/dom.js"
+							       data-url="https://boffinhouse.github.io/rawblock/sources/js/libs/rb_$.js"
 							       checked />
 							rbdom
 						</label>
@@ -65,16 +65,11 @@
 				document.write('<script src="' + input.getAttribute('data-url') +'"><\/script>');
 			})();
 		</script>
-		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb-cssconfig.js"></script>
-		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rawblock.js"></script>
-		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb_packageloader.js"></script>
-		<script>
-			window.ASSETBASEPATH = '../sources/';
-			rb.loadPackage.basePath = window.ASSETBASEPATH + 'js/';
-			rb.loadPackage.modulePath = window.ASSETBASEPATH + 'js/modules/';
-		</script>
-		<script src="../sources/js/modules/rb__childfx.js"></script>
-		<script src="../sources/js/modules/rb_scrolly.js"></script>
+		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb_crucial.js"></script>
+		<script src="https://boffinhouse.github.io/rawblock/sources/js/libs/rb_main.js"></script>
+
+		<script src="../sources/components/rb__childfx/rb__childfx.js"></script>
+		<script src="../sources/components/rb_scrolly/rb_scrolly.js"></script>
 
 		<script>
 			rb.life.init();

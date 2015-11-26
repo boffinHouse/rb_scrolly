@@ -4,6 +4,7 @@
 	module.exports = function (grunt) {
 		grunt.task.loadNpmTasks('grunt-sass');
 		grunt.task.loadNpmTasks('grunt-jsdoc');
+		grunt.task.loadNpmTasks('grunt-scssglobbing');
 		grunt.task.loadNpmTasks('grunt-contrib-copy');
 		grunt.task.loadNpmTasks('grunt-contrib-clean');
 		grunt.task.loadNpmTasks('grunt-autoprefixer');
@@ -18,14 +19,10 @@
 					sourceMap: false
 				},
 				dist: {
-					options: {
-						outputStyle: 'nested',
-						sourceMap: false
-					},
 					files: {
-						'dist/css/styles.css': 'tmp/styles.scss'
+						'dist/css/styles.css': 'component-helpers/sass/tmp_styles.scss'
 					}
-				}
+				},
 			},
 			clean: {
 				options: {
@@ -44,6 +41,13 @@
 							src: ['tmp']
 						}
 					]
+				},
+				scssglobbing: {
+					files: [
+						{
+							src: ['component-helpers/sass/tmp_*.scss']
+						}
+					]
 				}
 			},
 			autoprefixer: {
@@ -59,7 +63,7 @@
 			},
 			jsdoc: {
 				dist : {
-					src: ['sources/js/**/*.js'],
+					src: ['sources/**/*.js'],
 					options: {
 						destination: 'doc',
 						template : 'node_modules/ink-docstrap/template',
@@ -73,7 +77,7 @@
 				},
 				js: {
 					files: {
-						src: ['sources/js/**/*.js', 'tests/**/*.js']
+						src: ['sources/**/*.js', 'tests/**/*.js']
 					}
 				}
 			},
@@ -83,7 +87,7 @@
 					tasks: ['build']
 				},
 				assemble: {
-					files: ['sources/assemble/**/*.hbs', 'component-helpers/assemble/**/*.hbs', 'sources/assemble/data/**/*.json'],
+					files: ['sources/**/*.{hbs,json}', 'component-helpers/assemble/**/*.hbs'],
 					tasks: ['assemble']
 				},
 				jshint: {
@@ -93,10 +97,10 @@
 			},
 			assemble: {
 				options: {
-					data: 'sources/data/**/*.{json,yml}',
+					data: 'sources/**/*.{json,yml}',
 					helpers: ['component-helpers/assemble/helper/*.js'],
 					layoutdir: 'component-helpers/assemble/layouts/',
-					partials: ['sources/assemble/**/*.hbs']
+					partials: ['sources/**/*.hbs']
 				},
 				dev: {
 					options: {
@@ -122,10 +126,17 @@
 					expand: true,
 					src: ['**/*.js']
 				}
+			},
+			scssglobbing: {
+				main: {
+					files: {
+						src:"component-helpers/sass/__*.scss"
+					}
+				}
 			}
 		});
 
-		grunt.registerTask( 'css', ['generate-tmp-styles-scss', 'sass', 'autoprefixer', 'clean:tmp']);
+		grunt.registerTask( 'css', ['scssglobbing',  'sass', 'autoprefixer', 'clean:scssglobbing']);
 		grunt.registerTask('build', [ 'clean:dist', 'copy:js', 'css', 'assemble']);
 		grunt.registerTask('default', ['jshint', 'build', 'watch']);
 
